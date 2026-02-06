@@ -1,0 +1,45 @@
+version: "3.9"
+
+services:
+  timescaledb:
+    image: timescale/timescaledb-ha:pg17
+    container_name: timescaledb
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-testpassword}
+      POSTGRES_USER: ${PGUSER:-postgres}
+      POSTGRES_DB: ${PGDATABASE:-postgres}
+    volumes:
+      - timescaledb_data:/var/lib/postgresql/data
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/00-schema.sql:ro
+    restart: unless-stopped
+    network_mode: bridge
+
+  reddit_crawler:
+    build:
+      context: ./crawler
+      dockerfile: Dockerfile
+    container_name: reddit_crawler
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      PGHOST: 172.17.0.2
+      PGPORT: "5432"
+      REDDIT_USER_AGENT: ${REDDIT_USER_AGENT:-reddit-crawler/1.0}
+    network_mode: bridge
+    restart: unless-stopped
+    command: >
+      sh -c "grep -q ' timescaledb$' /etc/hosts || echo '172.17.0.2 timescaledb' >> /etc/hosts &&
+             python reddit_crawler.py"
+
+volumes:
+  timescaledb_data:
+    external: true
+    name: timescaledb-data
+
+networks:
+  default:
+    external:
+      name: bridge
