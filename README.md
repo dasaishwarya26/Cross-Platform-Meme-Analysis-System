@@ -1,6 +1,6 @@
 # System Components
 
-## 1. FastAPI Backend (Developed by Annie)
+## 1. FastAPI Backend
 
 Located in: `backend/main.py`  
 Handles real-time computation of:
@@ -34,7 +34,7 @@ API docs:
 
 ---
 
-## 2. Streamlit Dashboard (Developed by Aishwarya)
+## 2. Streamlit Dashboard
 
 Located in: `dashboard/app.py` + `dashboard/pages/`
 
